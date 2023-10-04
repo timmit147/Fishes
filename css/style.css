@@ -1,0 +1,56 @@
+*{
+    margin: 0px;
+    padding: 0px;
+}
+
+body{
+    background-color: 001F6F;
+    height: 100vh;
+    width: 100vw;
+}
+
+.player {
+    width: 100px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: transform 0.5s;
+    transform-origin: center center;
+}
+
+
+.circle {
+    position: fixed;
+    width: 40px;
+    height: 40px;
+    left: -100px;
+    background-color: blue;
+    border-radius: 50%;
+    pointer-events: none; 
+    z-index: -1;
+  }
+
+.xPosition{
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    color: white;
+    font-size: 20px;
+}
+
+.yPosition{
+    position: fixed;
+    top: 40px;
+    left: 10px;
+    color: white;
+    font-size: 20px;
+}
+
+.direction {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    height: 100vh;
+    width: 100vw;
+    text-align: center;
+}
