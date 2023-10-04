@@ -43,19 +43,18 @@ let isUpdateInProgress = false; // Flag to track whether an update is in progres
 async function updatePosition(direction, deltaX, deltaY) {
     if (isUpdateInProgress) {
         isUpdateInProgress = false; // Stop the previous update loop
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for the previous loop to complete
     }
 
     isUpdateInProgress = true; // Set the flag to indicate that an update is in progress
     currentDirection = direction; // Update the current direction
 
     while (isUpdateInProgress && currentDirection === direction) {
-        removeItems();
-        await new Promise(resolve => setTimeout(resolve, 4000));
         x += deltaX;
         y += deltaY;
         updateDisplay();
+        removeItems();
         loadItem(direction, deltaX, deltaY);
+        await new Promise(resolve => setTimeout(resolve, 4000));
     }
 
     // Reset the flag after the update loop is complete
@@ -79,6 +78,10 @@ const directionDivs = document.querySelectorAll('.direction div');
 directionDivs.forEach(div => {
     div.addEventListener('click', function () {
         const direction = div.classList[0]; // Extract the direction class
+        if(direction == "center"){
+            isUpdateInProgress = false;
+            return;
+        }
         updatePosition(direction, getDeltaX(direction), getDeltaY(direction));
     });
 });

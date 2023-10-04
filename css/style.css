@@ -17,19 +17,10 @@ body{
     transform: translate(-50%, -50%);
     transition: transform 0.5s;
     transform-origin: center center;
+    pointer-events: none;
 }
 
 
-.circle {
-    position: fixed;
-    width: 40px;
-    height: 40px;
-    left: -100px;
-    background-color: blue;
-    border-radius: 50%;
-    pointer-events: none; 
-    z-index: -1;
-  }
 
 .xPosition{
     position: fixed;
