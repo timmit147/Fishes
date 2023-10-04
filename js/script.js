@@ -35,76 +35,39 @@ function getShortestRotation(currentRotation, targetRotation) {
     return difference;
 }
 
-const circle = document.querySelector('.circle');
-let moving = true;
-
-document.addEventListener('click', async function (event) {
-    if (moving === false) {
-        return;
-    }
-    moving = false;
-    const x = event.clientX;
-    const y = event.clientY;
-
-    // Set initial position without transition
-    circle.style.transition = 'none';
-    circle.style.left = x - 20 + 'px';
-    circle.style.top = y - 20 + 'px';
-
-    // Trigger reflow to apply initial styles without transition
-    void circle.offsetWidth;
-
-    // Calculate the distance the element needs to travel
-    const deltaX = x - (parseFloat(circle.style.left) || 0);
-    const deltaY = y - (parseFloat(circle.style.top) || 0);
-
-    // Calculate the distance-based duration for a constant speed
-    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-    const speed = 10; // Adjust the speed as needed
-    const duration = distance / speed;
-
-    // Reapply transition for smooth animation with constant speed
-    circle.style.transition = `left linear ${duration}s, top linear ${duration}s`;
-
-    centerElement(circle);
-
-    // Wait until the transition is complete
-    await waitForTransitionEnd(circle);
-
-    // Reset transition property
-    circle.style.transition = '';
-
-    moving = true;
-});
-
-function waitForTransitionEnd(element) {
-    return new Promise(resolve => {
-        function transitionEndHandler() {
-            element.removeEventListener('transitionend', transitionEndHandler);
-            resolve();
-        }
-        element.addEventListener('transitionend', transitionEndHandler);
-    });
-}
-
-function centerElement(element) {
-    // Calculate the center of the body
-    var centerX = document.body.clientWidth / 2 - element.clientWidth / 2;
-    var centerY = document.body.clientHeight / 2 - element.clientHeight / 2;
-
-    // Set the new position
-    element.style.left = centerX + 'px';
-    element.style.top = centerY + 'px';
-}
-
-
 let x = 100;
 let y = 100;
+let currentDirection = ''; // Store the current direction
+let isUpdateInProgress = false; // Flag to track whether an update is in progress
 
-function updatePosition(deltaX, deltaY) {
-    x += deltaX;
-    y += deltaY;
-    updateDisplay();
+async function updatePosition(direction, deltaX, deltaY) {
+    if (isUpdateInProgress) {
+        isUpdateInProgress = false; // Stop the previous update loop
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for the previous loop to complete
+    }
+
+    isUpdateInProgress = true; // Set the flag to indicate that an update is in progress
+    currentDirection = direction; // Update the current direction
+
+    while (isUpdateInProgress && currentDirection === direction) {
+        removeItems();
+        await new Promise(resolve => setTimeout(resolve, 4000));
+        x += deltaX;
+        y += deltaY;
+        updateDisplay();
+        loadItem(direction, deltaX, deltaY);
+    }
+
+    // Reset the flag after the update loop is complete
+    isUpdateInProgress = false;
+}
+
+function removeItems() {
+    var images = document.querySelectorAll('img.item');
+
+    images.forEach(function (image) {
+        image.remove();
+    });
 }
 
 function updateDisplay() {
@@ -112,42 +75,54 @@ function updateDisplay() {
     document.querySelector('.yPosition').textContent = 'Y : ' + y;
 }
 
-// Add event listeners dynamically
 const directionDivs = document.querySelectorAll('.direction div');
 directionDivs.forEach(div => {
-    div.addEventListener('click', function() {
-        if (moving === false) {
-            return;
-        }
+    div.addEventListener('click', function () {
         const direction = div.classList[0]; // Extract the direction class
-        switch (direction) {
-            case 'leftup':
-                updatePosition(-1, -1);
-                break;
-            case 'up':
-                updatePosition(0, -1);
-                break;
-            case 'rightup':
-                updatePosition(1, -1);
-                break;
-            case 'left':
-                updatePosition(-1, 0);
-                break;
-            case 'center':
-                updatePosition(0, 0);
-                break;
-            case 'right':
-                updatePosition(1, 0);
-                break;
-            case 'leftdown':
-                updatePosition(-1, 1);
-                break;
-            case 'down':
-                updatePosition(0, 1);
-                break;
-            case 'rightdown':
-                updatePosition(1, 1);
-                break;
-        }
+        updatePosition(direction, getDeltaX(direction), getDeltaY(direction));
     });
 });
+
+function getDeltaX(direction) {
+    // Define the mapping of directions to deltaX
+    const deltaXMap = {
+        'leftup': -1, 'up': 0, 'rightup': 1,
+        'left': -1, 'center': 0, 'right': 1,
+        'leftdown': -1, 'down': 0, 'rightdown': 1
+    };
+    return deltaXMap[direction] || 0;
+}
+
+function getDeltaY(direction) {
+    // Define the mapping of directions to deltaY
+    const deltaYMap = {
+        'leftup': -1, 'up': -1, 'rightup': -1,
+        'left': 0, 'center': 0, 'right': 0,
+        'leftdown': 1, 'down': 1, 'rightdown': 1
+    };
+    return deltaYMap[direction] || 0;
+}
+
+function loadItem(direction, deltaX, deltaY) {
+    if (x === 100 && y === 100) {
+        console.log(direction, deltaX, deltaY);
+
+        // Load and position the image
+        var img = new Image();
+        img.onload = function () {
+            img.className = "item";
+            img.style.top = y + "px";
+            img.style.left = "0"; // Start from the left edge of the screen
+            document.body.appendChild(img);
+
+            // Apply transition
+            img.style.transition = "left 2s"; // Adjust the duration as needed
+
+            // Set the final position after a short delay to trigger the transition
+            setTimeout(function () {
+                img.style.left = x + "px";
+            }, 50); // Adjust the delay as needed
+        };
+        img.src = './images/clownFish.png';
+    }
+}
